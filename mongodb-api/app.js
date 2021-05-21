@@ -43,8 +43,6 @@ const server = async () => {
     });
 
     // mongoDB Driver - mongoose
-    await mongoose.connect('mongodb+srv://laonzenamoon:zNaGAK8aJbISMAc6@cluster-playground.7oyiw.mongodb.net/BlogService?retryWrites=true&w=majority');
-    console.log('MongoDB connected');
   } catch (error) {
     console.log(error);
   }
