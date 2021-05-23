@@ -8,3 +8,5 @@ All about mongoDB
 * node.js 15.x
 * Express
 * mongoDB
+  * mongoDB Atlas
+  * mongoose

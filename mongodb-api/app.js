@@ -4,8 +4,9 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const indexApi = require('./routes/indexApi');
+const userApi = require('./routes/userApi');
+const blogApi = require('./routes/blogApi');
 const mongoose = require("mongoose");
 
 const app = express();
@@ -23,8 +24,9 @@ const server = async () => {
     app.use(cookieParser());
     app.use(express.static(path.join(__dirname, 'public')));
 
-    app.use('/', indexRouter);
-    app.use('/user', usersRouter);
+    app.use('/index', indexApi);
+    app.use('/user', userApi);
+    app.use('/blog', blogApi);
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
@@ -43,6 +45,17 @@ const server = async () => {
     });
 
     // mongoDB Driver - mongoose
+    await mongoose.connect(
+      'mongodb+srv://laonzenamoon:zNaGAK8aJbISMAc6@cluster-playground.7oyiw.mongodb.net/BlogService?retryWrites=true&w=majority',
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
+      }
+    );
+    mongoose.set('debug', true);
+    console.log('MongoDB connected');
   } catch (error) {
     console.log(error);
   }
