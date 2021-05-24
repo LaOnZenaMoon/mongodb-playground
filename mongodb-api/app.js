@@ -3,11 +3,9 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
-const indexApi = require('./routes/indexApi');
-const userApi = require('./routes/userApi');
-const blogApi = require('./routes/blogApi');
+const {indexApi, userApi, blogApi, commentApi} = require('./routes');
 const mongoose = require("mongoose");
+const {generateFakeData} = require('./faker');
 
 const app = express();
 
@@ -27,6 +25,7 @@ const server = async () => {
     app.use('/index', indexApi);
     app.use('/user', userApi);
     app.use('/blog', blogApi);
+    app.use('/blog/:blogId/comment', commentApi);
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
@@ -56,6 +55,8 @@ const server = async () => {
     );
     mongoose.set('debug', true);
     console.log('MongoDB connected');
+
+    // generateFakeData(100, 10, 30);
   } catch (error) {
     console.log(error);
   }

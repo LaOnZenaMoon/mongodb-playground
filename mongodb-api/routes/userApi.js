@@ -1,10 +1,10 @@
 const express = require('express');
 const mongoose = require("mongoose");
 const {handleErrorResponse} = require("../common/commonUtils");
-const {User} = require("../bin/models/User");
-const router = express.Router();
+const {User} = require("../bin/models");
+const userApi = express.Router();
 
-router.get('/', async function (req, res, next) {
+userApi.get('/', async (req, res, next) => {
   try {
     let users = await User.find();
     return res.send({users});
@@ -13,10 +13,10 @@ router.get('/', async function (req, res, next) {
   }
 });
 
-router.get('/:userId', async function (req, res, next) {
+userApi.get('/:userId', async (req, res, next) => {
   try {
     const {userId} = req.params;
-    if (mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({message: 'userId is invalid.'});
     }
 
@@ -27,7 +27,7 @@ router.get('/:userId', async function (req, res, next) {
   }
 });
 
-router.post('/', async function (req, res) {
+userApi.post('/', async (req, res) => {
   try {
     const {username, name} = req.body;
     if (!username) {
@@ -46,10 +46,10 @@ router.post('/', async function (req, res) {
   }
 });
 
-router.put('/:userId', async function (req, res, next) {
+userApi.put('/:userId', async (req, res, next) => {
   try {
     const {userId} = req.params;
-    if (mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({message: 'userId is invalid.'});
     }
 
@@ -75,10 +75,10 @@ router.put('/:userId', async function (req, res, next) {
     // }
     // const user = await User.findByIdAndUpdate(userId, {$set: updateBody}, {new: true});
 
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
     if (age) {user.age = age;}
     if (name) {user.name = name;}
-    await user.save();
+    user.save();
 
     return res.send({user});
   } catch (e) {
@@ -86,10 +86,10 @@ router.put('/:userId', async function (req, res, next) {
   }
 });
 
-router.delete('/:userId', async function (req, res, next) {
+userApi.delete('/:userId', async (req, res, next) => {
   try {
     const {userId} = req.params;
-    if (mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({message: 'userId is invalid.'});
     }
 
@@ -100,4 +100,4 @@ router.delete('/:userId', async function (req, res, next) {
   }
 });
 
-module.exports = router;
+module.exports = {userApi};

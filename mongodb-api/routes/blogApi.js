@@ -1,23 +1,27 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const {User} = require("../bin/models/User");
+const {User, Blog} = require("../bin/models");
 const {handleErrorResponse} = require("../common/commonUtils");
-const {Blog} = require("../bin/models/Blog");
-const router = express.Router();
+const blogApi = express.Router();
 
-router.get('/', async function (req, res, next) {
+blogApi.get('/', async (req, res, next) => {
   try {
-    const blogs = await Blog.find();
+    const blogs = await Blog.find()
+      .limit(20)
+      .populate([
+        {path: 'user'},
+        {path: 'comments', populate: {path: 'user'}},
+      ]);
     return res.send({blogs});
   } catch (e) {
     return handleErrorResponse(res, e);
   }
 });
 
-router.get('/:blogId', async function (req, res, next) {
+blogApi.get('/:blogId', async (req, res, next) => {
   try {
     const {blogId} = req.params;
-    if (mongoose.isValidObjectId(blogId)) {
+    if (!mongoose.isValidObjectId(blogId)) {
       return res.status(400).send({message: 'blogId is invalid.'});
     }
 
@@ -28,7 +32,7 @@ router.get('/:blogId', async function (req, res, next) {
   }
 });
 
-router.post('/', async function (req, res) {
+blogApi.post('/', async (req, res) => {
   try {
     const {title, content, isLive, userId} = req.body;
     if (typeof title !== 'string') {
@@ -43,16 +47,16 @@ router.post('/', async function (req, res) {
       return res.status(400).send({message: 'isLive must be boolean.'});
     }
 
-    if (mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).send({message: 'userId is invalid.'});
     }
 
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(400).send({message: 'User does not exist.'});
     }
 
-    const blog = new Blog({...req.body, user:userId});
+    const blog = new Blog({...req.body, user: userId});
     await blog.save();
 
     return res.send({success: true, blog});
@@ -61,16 +65,22 @@ router.post('/', async function (req, res) {
   }
 });
 
-router.put('/:blogId', async function (req, res, next) {
+blogApi.put('/:blogId', async (req, res, next) => {
   try {
-    const {blogId, title, content} = req.params;
-    if (mongoose.isValidObjectId(blogId)) {
+    const {blogId} = req.params;
+    if (!mongoose.isValidObjectId(blogId)) {
       return res.status(400).send({message: 'blogId is invalid.'});
     }
 
-    const blog = Blog.findById(blogId);
-    if (title) {blog.title = title;}
-    if (content) {blog.content = content;}
+    const {title, content} = req.body;
+
+    const blog = await Blog.findById(blogId);
+    if (title) {
+      blog.title = title;
+    }
+    if (content) {
+      blog.content = content;
+    }
     await blog.save();
 
     return res.send({blog});
@@ -79,36 +89,37 @@ router.put('/:blogId', async function (req, res, next) {
   }
 });
 
-router.patch('/:blogId/live', async function (req, res, next) {
+blogApi.patch('/:blogId/live', async (req, res, next) => {
   try {
-    const {blogId, isLive} = req.params;
-    if (mongoose.isValidObjectId(blogId)) {
+    const {blogId} = req.params;
+    if (!mongoose.isValidObjectId(blogId)) {
       return res.status(400).send({message: 'blogId is invalid.'});
     }
 
+    const {isLive} = req.body;
     if (typeof isLive !== 'boolean') {
       return res.status(400).send({message: 'isLive must be boolean.'});
     }
 
-    const blog = Blog.findByIdAndUpdate(blogId, {isLive}, {new: true});
+    const blog = await Blog.findByIdAndUpdate(blogId, {isLive}, {new: true});
     return res.send({blog});
   } catch (e) {
     return handleErrorResponse(res, e);
   }
 });
 
-router.delete('/:userId', async function (req, res, next) {
+blogApi.delete('/:blogId', async (req, res, next) => {
   try {
-    const {userId} = req.params;
-    if (mongoose.isValidObjectId(userId)) {
-      return res.status(400).send({message: 'userId is invalid.'});
+    const {blogId} = req.params;
+    if (!mongoose.isValidObjectId(blogId)) {
+      return res.status(400).send({message: 'blogId is invalid.'});
     }
 
-    const blog = await Blog.findOneAndDelete({_id: userId});
+    const blog = await Blog.findOneAndDelete({_id: blogId});
     return res.send({blog});
   } catch (e) {
     return handleErrorResponse(res, e);
   }
 });
 
-module.exports = router;
+module.exports = {blogApi};
