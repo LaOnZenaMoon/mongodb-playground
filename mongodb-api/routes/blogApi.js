@@ -56,7 +56,10 @@ blogApi.post('/', async (req, res) => {
       return res.status(400).send({message: 'User does not exist.'});
     }
 
-    const blog = new Blog({...req.body, user: userId});
+    const blog = new Blog({
+      ...req.body,
+      user: user,
+    });
     await blog.save();
 
     return res.send({success: true, blog});

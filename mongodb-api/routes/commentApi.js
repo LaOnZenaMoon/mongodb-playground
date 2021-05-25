@@ -46,8 +46,38 @@ commentApi.post('/', async (req, res) => {
       return res.status(400).send({message: 'user does not exist.'});
     }
 
-    const comment = new Comment({content, blog, user});
-    await comment.save();
+    const comment = new Comment({
+      content,
+      blog,
+      user,
+      userFullName: `${user.name.first} ${user.name.last}`
+    });
+
+    await Promise.all([
+      comment.save(),
+      Blog.updateOne({_id: blogId}, {$push: {comments: comment}}),
+    ]);
+
+    return res.send({success: true, comment});
+  } catch (e) {
+    return handleErrorResponse(res, e);
+  }
+});
+
+commentApi.patch('/:commentId', async (req, res) => {
+  try {
+    const {commentId} = req.params;
+    const {content} = req.body;
+    if (typeof content !== 'string') {
+      return res.status(400).send({message: 'content must be string.'});
+    }
+
+    const [comment, blog] = await Promise.all([
+      Comment.findOneAndUpdate({_id: commentId}, {content}, {new: true}),
+      // 조건에 충족하는 것이 $ 뒤에 선택이 된 것
+      Blog.updateOne({'comments._id': commentId}, {'comments.$.content': content}),
+    ]);
+
     return res.send({success: true, comment});
   } catch (e) {
     return handleErrorResponse(res, e);

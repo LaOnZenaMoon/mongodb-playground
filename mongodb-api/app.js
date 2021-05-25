@@ -5,7 +5,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const {indexApi, userApi, blogApi, commentApi} = require('./routes');
 const mongoose = require("mongoose");
-const {generateFakeData} = require('./faker');
+// const {generateFakeData} = require('./faker');
+const {generateFakeData} = require('./faker2');
 
 const app = express();
 
@@ -56,7 +57,10 @@ const server = async () => {
     mongoose.set('debug', true);
     console.log('MongoDB connected');
 
-    // generateFakeData(100, 10, 30);
+    // await generateFakeData(10, 1, 10);
+    for (let i = 0; i < 20; i++) {
+      await generateFakeData(10, 1, 10);
+    }
   } catch (error) {
     console.log(error);
   }
