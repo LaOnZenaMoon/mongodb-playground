@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require("mongoose");
+const {Blog} = require("../bin/models");
 const {handleErrorResponse} = require("../common/commonUtils");
 const {User} = require("../bin/models");
 const userApi = express.Router();
@@ -76,8 +77,23 @@ userApi.put('/:userId', async (req, res, next) => {
     // const user = await User.findByIdAndUpdate(userId, {$set: updateBody}, {new: true});
 
     const user = await User.findById(userId);
-    if (age) {user.age = age;}
-    if (name) {user.name = name;}
+    if (age) {
+      user.age = age;
+    }
+
+    if (name) {
+      user.name = name;
+
+      await Promise.all([
+        Blog.updateMany({'user._id': userId}, {'user.n`   ame': name}),
+        Blog.updateMany(
+          {},
+          {'comments.$[comment].userFullName': `${name.first} ${name.last}`}, // $[comment]: comment 객체 자체를 의미
+          {arrayFilters: [{'comment.user._id': userId}]}
+        ),
+      ]);
+    }
+
     user.save();
 
     return res.send({user});
@@ -93,7 +109,13 @@ userApi.delete('/:userId', async (req, res, next) => {
       return res.status(400).send({message: 'userId is invalid.'});
     }
 
-    const user = await User.findOneAndDelete({_id: userId});
+    const [user] = await Promise.all([
+      await User.findOneAndDelete({_id: userId}),
+      await Blog.deleteMany({'user._id': userId}),
+      await Blog.updateMany({'comments.user': userId}, {$pull: {comments: {user: userId}}}),
+      await Blog.deleteMany({user: userId}),
+    ]);
+
     return res.send({user});
   } catch (e) {
     return handleErrorResponse(res, e);

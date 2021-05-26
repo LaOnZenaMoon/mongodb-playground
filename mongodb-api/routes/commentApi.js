@@ -84,4 +84,26 @@ commentApi.patch('/:commentId', async (req, res) => {
   }
 });
 
+commentApi.delete('/:commentId', async (req, res) => {
+  try {
+    const {commentId} = req.params;
+    const comment = await Comment.findOneAndDelete({_id: commentId});
+
+    await Blog.updateOne({'comments._id': commentId}, {
+      $pull: {
+        comments: {
+          $elemMatch: {
+            content: 'hello',
+            useFullName: 'jun lee'
+          }
+        }
+      }
+    });
+
+    return res.send({success: true, comment});
+  } catch (e) {
+    return handleErrorResponse(res, e);
+  }
+});
+
 module.exports = {commentApi};
