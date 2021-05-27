@@ -45,8 +45,9 @@ const server = async () => {
     });
 
     // mongoDB Driver - mongoose
+    const mongoDbUrl = '';
     await mongoose.connect(
-      'mongodb+srv://laonzenamoon:zNaGAK8aJbISMAc6@cluster-playground.7oyiw.mongodb.net/BlogService?retryWrites=true&w=majority',
+      mongoDbUrl,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
