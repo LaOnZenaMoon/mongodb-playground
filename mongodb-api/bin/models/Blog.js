@@ -17,6 +17,7 @@ const BlogSchema = new Schema({
     age: Number,
     email: String,
   },
+  commentsCount: {type: Number, default: 0, required: true},
   // comments: [{type: Types.ObjectId, required: true, ref: 'comment'}],
   comments: [CommentSchema],
 }, {timestamps: true});
@@ -29,6 +30,9 @@ const BlogSchema = new Schema({
 //
 // BlogSchema.set('toObject', {virtuals: true});
 // BlogSchema.set('toJSON', {virtuals: true});
+
+BlogSchema.index({'user._id': 1, updatedAt: 1}, {unique: true});
+BlogSchema.index({title: 'text', content: 'text'});
 
 const Blog = model('blog', BlogSchema);
 
