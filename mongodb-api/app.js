@@ -45,9 +45,9 @@ const server = async () => {
     });
 
     // mongoDB Driver - mongoose
-    const mongoDbUrl = '';
+    const {MONGODB_URI} = process.env;
     await mongoose.connect(
-      mongoDbUrl,
+      MONGODB_URI,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
