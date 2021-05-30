@@ -6,12 +6,17 @@ const blogApi = express.Router();
 
 blogApi.get('/', async (req, res, next) => {
   try {
+    const {page} = req.query;
+    const pageSize = 10;
+
     const blogs = await Blog.find()
-      .limit(20)
+      .skip(parseInt(page) * pageSize)
+      .limit(pageSize)
       .populate([
         {path: 'user'},
         {path: 'comments', populate: {path: 'user'}},
-      ]);
+      ])
+      .sort({updatedAt: -1});
     return res.send({blogs});
   } catch (e) {
     return handleErrorResponse(res, e);
@@ -25,8 +30,15 @@ blogApi.get('/:blogId', async (req, res, next) => {
       return res.status(400).send({message: 'blogId is invalid.'});
     }
 
-    const blog = await Blog.findOne({_id: blogId});
-    return res.send({blog});
+    const [blog] = await Promise.all([
+      Blog.findOne({_id: blogId}),
+      // Comment.find({blog: blogId}).countDocuments(),
+    ]);
+
+    return res.send({
+      blog,
+      // commentCount
+    });
   } catch (e) {
     return handleErrorResponse(res, e);
   }

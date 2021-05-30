@@ -46,6 +46,8 @@ const server = async () => {
 
     // mongoDB Driver - mongoose
     const {MONGODB_URI} = process.env;
+    if (!MONGODB_URI) throw new Error('MongoDB URI must be set on .env file.');
+
     await mongoose.connect(
       MONGODB_URI,
       {
